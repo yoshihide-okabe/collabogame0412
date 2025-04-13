@@ -1,18 +1,18 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ChevronLeft, Bell } from "lucide-react"
-import { MobileNav } from "@/components/mobile-nav"
-import { ProjectGrid } from "@/components/project-grid"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, Bell } from "lucide-react";
+import { MobileNav } from "@/components/mobile-nav";
+import { ProjectGrid } from "@/components/project-grid";
 
 interface ProjectsPageProps {
   params: {
-    type: string
-  }
+    type: string;
+  };
 }
 
-export default function ProjectsPage({ params }: ProjectsPageProps) {
-  const type = params.type
-  const title = type === "new" ? "新着プロジェクト" : "お気に入りプロジェクト"
+export default async function ProjectsPage({ params }: ProjectsPageProps) {
+  const type = params.type;
+  const title = type === "new" ? "新着プロジェクト" : "お気に入りプロジェクト";
 
   return (
     <div className="pb-20 bg-gradient-to-b from-lightgreen-50 to-white">
@@ -43,7 +43,9 @@ export default function ProjectsPage({ params }: ProjectsPageProps) {
               size="icon"
               className="rounded-full overflow-hidden border-2 border-lightgreen-200 p-0"
             >
-              <div className="h-8 w-8 bg-orange-500 text-white font-semibold flex items-center justify-center">キ</div>
+              <div className="h-8 w-8 bg-orange-500 text-white font-semibold flex items-center justify-center">
+                キ
+              </div>
             </Button>
           </div>
         </div>
@@ -55,6 +57,5 @@ export default function ProjectsPage({ params }: ProjectsPageProps) {
 
       <MobileNav />
     </div>
-  )
+  );
 }
-

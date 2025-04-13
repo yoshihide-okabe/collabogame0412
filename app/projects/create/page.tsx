@@ -3,6 +3,8 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button"; // ✅ UIボタン再利用
 
 interface Category {
   category_id: number;
@@ -15,11 +17,14 @@ export default function CreateProject() {
     title: "",
     summary: "",
     description: "",
+    category_id: "", // ✅ 追加：カテゴリーIDを追加
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
+
+  const [showModal, setShowModal] = useState(false); // ✅ モーダル表示フラグ
 
   useEffect(() => {
     // ユーザーIDをローカルストレージから取得
@@ -30,6 +35,14 @@ export default function CreateProject() {
       setUserId(1);
     } else {
       setUserId(parseInt(storedUserId, 10));
+    }
+
+    // 開発環境では仮のトークンを設定
+    if (
+      process.env.NODE_ENV === "development" &&
+      !localStorage.getItem("token")
+    ) {
+      localStorage.setItem("token", "dummy_development_token");
     }
 
     // カテゴリー一覧を取得
@@ -71,7 +84,7 @@ export default function CreateProject() {
     setError("");
 
     // 入力検証
-    if (!formData.title || !formData.description) {
+    if (!formData.title || !formData.description || !formData.category_id) {
       setError("必須項目を入力してください");
       setIsSubmitting(false);
       return;
@@ -96,6 +109,7 @@ export default function CreateProject() {
           title: formData.title,
           summary: formData.summary,
           description: formData.description,
+          category_id: parseInt(formData.category_id, 10), // ✅ 追加：category_id を送信
           creator_user_id: userId,
         }),
       });
@@ -113,8 +127,10 @@ export default function CreateProject() {
       // 成功メッセージ
       toast.success("プロジェクトが正常に作成されました");
 
+      setShowModal(true); // ✅ 登録成功後にモーダル表示
+
       // プロジェクト詳細ページに遷移
-      router.push(`/projects/${data.project_id}`);
+      // router.push(`/projects/${data.project_id}`);
     } catch (err) {
       console.error("プロジェクト登録エラー:", err);
       setError(
@@ -125,6 +141,17 @@ export default function CreateProject() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // ✅ モーダルボタン処理
+  const handleYes = () => {
+    setShowModal(false);
+    router.push("/troubles/create");
+  };
+
+  const handleNo = () => {
+    setShowModal(false);
+    router.push("/");
   };
 
   return (
@@ -196,6 +223,31 @@ export default function CreateProject() {
           </p>
         </div>
 
+        {/* ✅ 追加：カテゴリー選択エリア */}
+        <div className="space-y-2">
+          <label
+            htmlFor="category_id"
+            className="block font-medium text-gray-700"
+          >
+            カテゴリー <span className="text-red-500">*</span>
+          </label>
+          <select
+            id="category_id"
+            name="category_id"
+            value={formData.category_id}
+            onChange={handleChange}
+            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            required
+          >
+            <option value="">-- カテゴリーを選択 --</option>
+            {categories.map((cat) => (
+              <option key={cat.category_id} value={cat.category_id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex gap-4 mt-8">
           <button
             type="button"
@@ -213,6 +265,34 @@ export default function CreateProject() {
           </button>
         </div>
       </form>
+
+      {/* ✅ 成功後のモーダル */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent>
+          <div className="text-lg font-medium mb-4">
+            続けてお困りごとを登録しますか？
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowModal(false);
+                router.push("/"); // ✅ ホームへ遷移
+              }}
+            >
+              いいえ
+            </Button>
+            <Button
+              onClick={() => {
+                setShowModal(false);
+                router.push("/troubles/create");
+              }}
+            >
+              はい
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
