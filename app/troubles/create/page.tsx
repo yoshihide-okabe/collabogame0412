@@ -6,6 +6,12 @@ import { useState, type FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog"; // ← モーダル用コンポーネントを追加
 
 interface Project {
   project_id: number;
@@ -30,6 +36,7 @@ export default function CreateTrouble() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [userId, setUserId] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState(false); // ← 成功モーダル表示フラグを追加
 
   useEffect(() => {
     // ユーザーIDをローカルストレージから取得
@@ -68,11 +75,14 @@ export default function CreateTrouble() {
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:8000/api/v1/projects", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "http://localhost:8000/api/v1/projects/user",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (response.ok) {
         const data = await response.json();
         setProjects(data);
@@ -140,20 +150,36 @@ export default function CreateTrouble() {
         return;
       }
 
-      const response = await fetch("http://localhost:8000/api/v1/troubles", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          project_id: Number.parseInt(formData.project_id, 10),
-          category_id: Number.parseInt(formData.category_id, 10),
-          creator_user_id: userId,
-          description: formData.description,
-          status: formData.status,
-        }),
-      });
+      //  const response = await fetch("http://localhost:8000/api/v1/troubles", {
+      //    method: "POST",
+      //    headers: {
+      //      "Content-Type": "application/json",
+      //      Authorization: `Bearer ${token}`,
+      //    },
+      //    body: JSON.stringify({
+      //      project_id: Number.parseInt(formData.project_id, 10),
+      //      category_id: Number.parseInt(formData.category_id, 10),
+      //      description: formData.description,
+      //      status: formData.status,
+      //    }),
+      //  });
+
+      // 新しいエンドポイントを使用
+      const response = await fetch(
+        "http://localhost:8000/api/v1/troubles/simple?" +
+          new URLSearchParams({
+            project_id: formData.project_id,
+            category_id: formData.category_id,
+            description: formData.description,
+            status: formData.status || "未解決",
+          }),
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -165,8 +191,14 @@ export default function CreateTrouble() {
       // 成功メッセージ
       toast.success("お困りごとが正常に登録されました");
 
-      // プロジェクト詳細ページに遷移
-      router.push(`/projects/${formData.project_id}`);
+      // ここで現在のプロジェクトIDを保持
+      const currentProjectId = formData.project_id;
+
+      // 登録成功後にモーダルを表示する
+      setShowModal(true);
+
+      // 以下の行はモーダル処理に移動
+      // router.push(`/projects/${formData.project_id}`);
     } catch (err) {
       console.error("お困りごと登録エラー:", err);
       setError(
@@ -177,6 +209,27 @@ export default function CreateTrouble() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // モーダルボタン処理を追加
+  const handleYes = () => {
+    // 現在のプロジェクトIDを保持してフォームだけリセット
+    const currentProjectId = formData.project_id;
+
+    setFormData({
+      project_id: currentProjectId, // プロジェクトIDは維持
+      category_id: "",
+      description: "",
+      status: "未解決",
+    });
+
+    setShowModal(false);
+    // 同じページにとどまる（フォームだけリセット）
+  };
+
+  const handleNo = () => {
+    setShowModal(false);
+    router.push("/"); // ホーム画面へ遷移
   };
 
   return (
@@ -298,6 +351,23 @@ export default function CreateTrouble() {
           </Button>
         </div>
       </form>
+
+      {/* 成功後のモーダルを追加 */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent>
+          <DialogTitle>登録完了</DialogTitle>
+
+          <div className="text-lg font-medium mb-4">
+            もう1件お困りごとを登録しますか？
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleNo}>
+              いいえ
+            </Button>
+            <Button onClick={handleYes}>はい</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

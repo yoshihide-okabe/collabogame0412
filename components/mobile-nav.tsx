@@ -1,5 +1,5 @@
-import Link from "next/link"
-import { Home, MessageSquare, PlusCircle, Mail, User } from "lucide-react"
+import Link from "next/link";
+import { Home, MessageSquare, PlusCircle, Mail, User } from "lucide-react";
 
 export function MobileNav() {
   return (
@@ -24,7 +24,7 @@ export function MobileNav() {
           <span className="text-xs font-medium">お困りごと</span>
         </Link>
         <Link
-          href="#"
+          href="/projects/create" // ここを "/projects/create" に変更
           className="flex flex-col items-center justify-center p-2 text-lightgreen-600 hover:text-lightgreen-800 relative"
         >
           <div className="bg-lightgreen-500 rounded-full p-3 -mt-6 shadow-md pulse-animation">
@@ -52,6 +52,5 @@ export function MobileNav() {
         </Link>
       </div>
     </div>
-  )
+  );
 }
-

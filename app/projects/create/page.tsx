@@ -3,8 +3,14 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button"; // ✅ UIボタン再利用
+// 修正: DialogTitle をインポートに追加
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Category {
   category_id: number;
@@ -269,6 +275,8 @@ export default function CreateProject() {
       {/* ✅ 成功後のモーダル */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent>
+          {/* ここに DialogTitle を追加（修正箇所） */}
+          <DialogTitle>確認</DialogTitle>
           <div className="text-lg font-medium mb-4">
             続けてお困りごとを登録しますか？
           </div>
